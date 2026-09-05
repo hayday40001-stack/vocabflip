@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VocabFlip Plus — แฟลชการ์ดคำศัพท์ภาษาอังกฤษ</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+ --bg:#0d1224;--surface:#151d35;--surface2:#1e2948;--text:#eef3ff;--muted:#9ca9c9;
+ --gold:#ffd166;--green:#64d98b;--coral:#ff7b72;--blue:#6ab8ff;--violet:#a78bfa;
+ --card:#ffffff;--ink:#172033;--shadow:rgba(0,0,0,.28)
+}
+body{font-family:'Noto Sans Thai','Inter',sans-serif;background:
+radial-gradient(circle at top left,rgba(106,184,255,.11),transparent 28%),
+radial-gradient(circle at top right,rgba(167,139,250,.12),transparent 30%),
+linear-gradient(180deg,#0d1224,#111832 65%,#0b1020);color:var(--text);min-height:100vh}
+.app{max-width:1180px;margin:auto;padding:20px}
+.header{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:14px}
+.brand h1{font-family:'DM Serif Display',serif;color:var(--gold);font-size:2.35rem}
+.brand p{color:var(--muted);font-size:.9rem}
+.search-wrap{display:flex;gap:8px;flex-wrap:wrap}
+.search-wrap input,.search-wrap select{background:var(--surface);border:1px solid rgba(255,255,255,.09);color:var(--text);padding:.72rem .9rem;border-radius:12px;outline:none}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:10px 0 14px}
+.stat{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:12px;text-align:center}
+.stat strong{font-size:1.5rem}.stat span{display:block;color:var(--muted);font-size:.72rem}
+.categories{display:flex;gap:8px;overflow:auto;padding-bottom:8px;margin-bottom:8px}
+.cat{border:none;color:white;padding:.6rem .9rem;border-radius:999px;cursor:pointer;font:inherit;white-space:nowrap;opacity:.7;transition:.2s}
+.cat.active{opacity:1;transform:translateY(-1px);box-shadow:0 7px 20px rgba(0,0,0,.25)}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;align-items:start}
+.panel{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:16px;backdrop-filter:blur(8px)}
+.card-area{perspective:1200px}
+.card-wrap{max-width:620px;margin:auto;aspect-ratio:16/10;cursor:pointer}
+.card{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:.5s cubic-bezier(.2,.7,.2,1)}
+.card.flipped{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;border-radius:24px;backface-visibility:hidden;padding:28px;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;box-shadow:0 18px 50px var(--shadow)}
+.front{background:linear-gradient(160deg,#fff,#f5f7fb);color:var(--ink)}
+.back{background:linear-gradient(160deg,#23335b,#17213d);transform:rotateY(180deg)}
+.ribbon{position:absolute;top:18px;left:18px;font-size:.72rem;font-weight:700;padding:.38rem .68rem;border-radius:999px;color:white}
+.memory{font-size:3.4rem;margin-bottom:4px;filter:drop-shadow(0 6px 12px rgba(0,0,0,.15))}
+.word{font-family:'DM Serif Display',serif;font-size:3rem;line-height:1.1}
+.thai-reading{font-size:1.15rem;font-weight:700;margin-top:8px;color:#42506e}
+.phonetic{margin-top:4px;color:#7e8aa6;font-size:.92rem}
+.meaning{font-size:1.8rem;font-weight:800;margin-bottom:8px}
+.example{font-size:1rem;line-height:1.65;color:#cbd5ed;max-width:520px}
+.hint{position:absolute;bottom:18px;font-size:.72rem;opacity:.55}
+.toolbar{display:flex;justify-content:center;gap:8px;margin-top:14px;flex-wrap:wrap}
+.btn{border:none;border-radius:12px;padding:.72rem 1rem;font:inherit;font-weight:700;cursor:pointer;background:var(--surface2);color:var(--text)}
+.btn.primary{background:var(--gold);color:#1a1a1a}
+.rating{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px;opacity:0;pointer-events:none;transform:translateY(6px);transition:.2s}
+.rating.visible{opacity:1;pointer-events:auto;transform:none}
+.rate{border:none;border-radius:12px;padding:.68rem .4rem;font:inherit;font-size:.8rem;font-weight:700;cursor:pointer}
+.rate small{display:block;font-size:.65rem;opacity:.75}
+.again{background:rgba(255,123,114,.14);color:#ff9b93}.hard{background:rgba(255,209,102,.14);color:#ffd166}.good{background:rgba(100,217,139,.14);color:#72e39a}.easy{background:rgba(106,184,255,.14);color:#7cc4ff}
+.side h3{margin-bottom:10px}.side p{color:var(--muted);font-size:.84rem;line-height:1.55}.progress{height:8px;background:#0c1327;border-radius:999px;overflow:hidden;margin:12px 0 16px}.fill{height:100%;background:linear-gradient(90deg,var(--green),var(--blue));width:0}
+.meta{display:grid;gap:8px;margin-top:10px}.meta div{background:rgba(255,255,255,.035);border-radius:12px;padding:10px}.meta b{display:block}.meta span{color:var(--muted);font-size:.78rem}
+.empty{text-align:center;padding:50px 20px;color:var(--muted)}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);align-items:center;justify-content:center;padding:16px;z-index:20}.modal-bg.open{display:flex}
+.modal{width:min(520px,100%);max-height:90vh;overflow:auto;background:#17213d;border-radius:18px;padding:18px}
+.modal h2{color:var(--gold)}.modal label{display:block;margin-top:10px;font-size:.8rem;color:var(--muted)}
+.modal input,.modal textarea,.modal select{width:100%;margin-top:5px;padding:.7rem;border-radius:10px;border:1px solid rgba(255,255,255,.09);background:#0d1429;color:#fff;font:inherit}
+.modal textarea{min-height:70px}.actions{display:flex;gap:8px;margin-top:14px}.actions button{flex:1}
+@media(max-width:850px){.main{grid-template-columns:1fr}.side{order:2}.stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.app{padding:12px}.brand h1{font-size:1.9rem}.word{font-size:2.2rem}.meaning{font-size:1.4rem}.card-wrap{aspect-ratio:4/3}.face{padding:20px}.rating{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="brand"><h1>VocabFlip Plus</h1><p>แฟลชการ์ดอังกฤษ • คำอ่านไทย • Spaced Repetition • 8 หมวดหมู่</p></div>
+    <div class="search-wrap">
+      <input id="search" placeholder="ค้นหาคำศัพท์ / ความหมาย..." oninput="onSearch()">
+      <select id="level" onchange="showNextCard()">
+        <option value="all">ทุกระดับ</option><option>A1</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><strong id="sNew">0</strong><span>คำใหม่</span></div>
+    <div class="stat"><strong id="sLearning">0</strong><span>กำลังเรียน</span></div>
+    <div class="stat"><strong id="sReview">0</strong><span>รอทบทวน</span></div>
+    <div class="stat"><strong id="sDone">0</strong><span>ทำวันนี้</span></div>
+  </div>
+
+  <div id="cats" class="categories"></div>
+
+  <div class="main">
+    <section class="panel">
+      <div id="cardArea" class="card-area">
+        <div class="card-wrap" onclick="flipCard()">
+          <div class="card" id="card">
+            <div class="face front">
+              <div class="ribbon" id="fCat"></div>
+              <div class="memory" id="memory">🧠</div>
+              <div class="word" id="word">Loading...</div>
+              <div class="thai-reading" id="thaiReading"></div>
+              <div class="phonetic" id="phonetic"></div>
+              <div class="hint">แตะเพื่อพลิก • Space</div>
+            </div>
+            <div class="face back">
+              <div class="ribbon" id="bCat"></div>
+              <div class="meaning" id="meaning"></div>
+              <div class="example" id="example"></div>
+              <div class="hint">ให้คะแนนด้านล่าง • 1–4</div>
+            </div>
+          </div>
+        </div>
+        <div class="toolbar">
+          <button class="btn" onclick="speakWord(event)">🔊 ฟังเสียง</button>
+          <button class="btn" onclick="shuffleCard(event)">🎲 สุ่มคำ</button>
+          <button class="btn primary" onclick="openModal(event)">＋ เพิ่มคำศัพท์</button>
+        </div>
+        <div class="rating" id="rating">
+          <button class="rate again" onclick="rateCard(0,event)">อีกครั้ง<small id="i0"></small></button>
+          <button class="rate hard" onclick="rateCard(1,event)">ยาก<small id="i1"></small></button>
+          <button class="rate good" onclick="rateCard(2,event)">ดี<small id="i2"></small></button>
+          <button class="rate easy" onclick="rateCard(3,event)">ง่าย<small id="i3"></small></button>
+        </div>
+      </div>
+      <div id="empty" class="empty" style="display:none">🎉 ไม่มีการ์ดที่ตรงกับตัวกรองนี้</div>
+    </section>
+
+    <aside class="panel side">
+      <h3>ภาพรวมการเรียน</h3>
+      <p>เลือกหมวดหมู่ แล้วกดพลิกการ์ดเพื่อดูความหมาย โปรแกรมจะจัดรอบทบทวนตามคะแนนที่คุณให้</p>
+      <div class="progress"><div class="fill" id="progress"></div></div>
+      <div class="meta">
+        <div><b id="totalWords">0</b><span>คำศัพท์ทั้งหมด</span></div>
+        <div><b id="activeCat">ทั้งหมด</b><span>หมวดหมู่ปัจจุบัน</span></div>
+        <div><b id="sourceStatus">กำลังโหลด</b><span>แหล่งข้อมูลคำศัพท์</span></div>
+      </div>
+      <div class="toolbar" style="justify-content:flex-start;margin-top:14px">
+        <button class="btn" onclick="resetProgress()">↻ รีเซ็ตความก้าวหน้า</button>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<div id="modalBg" class="modal-bg">
+ <div class="modal">
+  <h2>เพิ่มคำศัพท์ใหม่</h2>
+  <label>คำศัพท์อังกฤษ</label><input id="mWord">
+  <label>คำอ่านไทย</label><input id="mThai" placeholder="เช่น บิว-ทิ-ฟูล">
+  <label>IPA</label><input id="mPhonetic" placeholder="/ˈbjuː.tɪ.fəl/">
+  <label>ความหมายไทย</label><input id="mMeaning">
+  <label>ประโยคตัวอย่าง</label><textarea id="mExample"></textarea>
+  <label>ภาพช่วยจำ / Emoji</label><input id="mImage" placeholder="🌷">
+  <label>หมวดหมู่</label><select id="mCategory"></select>
+  <label>ระดับ</label><select id="mLevel"><option>A1</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option></select>
+  <div class="actions"><button class="btn" onclick="closeModal()">ยกเลิก</button><button class="btn primary" onclick="saveWord()">บันทึก</button></div>
+ </div>
+</div>
+
+<script>
+const CATEGORY_META={
+ "Daily Life":{label:"ชีวิตประจำวัน",color:"#ff8a65",icon:"🏠"},
+ "Work & Business":{label:"งานและธุรกิจ",color:"#5c9ded",icon:"💼"},
+ "Academic":{label:"การเรียน",color:"#8e7dff",icon:"🎓"},
+ "Travel":{label:"การเดินทาง",color:"#31c6a5",icon:"✈️"},
+ "Emotions":{label:"อารมณ์",color:"#f16ba4",icon:"💗"},
+ "Technology":{label:"เทคโนโลยี",color:"#4ec9f5",icon:"💻"},
+ "Food & Health":{label:"อาหารและสุขภาพ",color:"#79d06f",icon:"🥗"},
+ "Nature & Society":{label:"ธรรมชาติและสังคม",color:"#d8a14f",icon:"🌍"}
+};
+const FALLBACK=[
+ {word:"beautiful",thaiReading:"บิว-ทิ-ฟูล",phonetic:"/ˈbjuː.tɪ.fəl/",meaning:"สวยงาม",example:"The garden is beautiful in spring.",category:"Daily Life",image:"🌷",level:"A2"},
+ {word:"schedule",thaiReading:"สเคด-จูล",phonetic:"/ˈskedʒ.uːl/",meaning:"ตารางเวลา, กำหนดการ",example:"Let me check my schedule.",category:"Work & Business",image:"🗓️",level:"A2"},
+ {word:"analyze",thaiReading:"แอน-นะ-ไลซ",phonetic:"/ˈæn.ə.laɪz/",meaning:"วิเคราะห์",example:"We need to analyze the data carefully.",category:"Academic",image:"🔎",level:"B1"},
+ {word:"destination",thaiReading:"เดส-ทิ-เน-ชัน",phonetic:"/ˌdes.tɪˈneɪ.ʃən/",meaning:"จุดหมายปลายทาง",example:"Bangkok is our final destination.",category:"Travel",image:"🧳",level:"B1"},
+ {word:"grateful",thaiReading:"เกรท-ฟูล",phonetic:"/ˈɡreɪt.fəl/",meaning:"รู้สึกขอบคุณ",example:"I am grateful for your help.",category:"Emotions",image:"🙏",level:"B1"},
+ {word:"algorithm",thaiReading:"แอล-กะ-ริ-ธึม",phonetic:"/ˈæl.ɡə.rɪ.ðəm/",meaning:"ขั้นตอนวิธี, อัลกอริทึม",example:"The app uses an algorithm to rank results.",category:"Technology",image:"⚙️",level:"B2"},
+ {word:"nutrition",thaiReading:"นิว-ทริช-ชัน",phonetic:"/nuːˈtrɪʃ.ən/",meaning:"โภชนาการ",example:"Good nutrition supports healthy growth.",category:"Food & Health",image:"🥦",level:"B1"},
+ {word:"ecosystem",thaiReading:"อี-โค-ซิส-เท็ม",phonetic:"/ˈiː.koʊˌsɪs.təm/",meaning:"ระบบนิเวศ",example:"Coral reefs are complex ecosystems.",category:"Nature & Society",image:"🌱",level:"B2"}
+];
+let vocab=[], current=null, currentCategory="all", todayDone=0, searchText="";
+const now=()=>Date.now(), today=()=>new Date().toDateString();
+const srs=()=>({interval:0,ease:2.5,repetitions:0,nextReview:0,status:"new"});
+async function loadData(){
+ let loaded=[];
+ try{
+   const r=await fetch("data/vocab.json",{cache:"no-store"});
+   if(r.ok) loaded=await r.json();
+ }catch(e){}
+ if(!Array.isArray(loaded)||!loaded.length){loaded=FALLBACK;document.getElementById("sourceStatus").textContent="ตัวอย่างในไฟล์";}
+ else document.getElementById("sourceStatus").textContent="data/vocab.json";
+ const saved=JSON.parse(localStorage.getItem("vocabflip_plus_data")||"[]");
+ const savedMap=new Map(saved.map(v=>[v.word.toLowerCase(),v]));
+ vocab=loaded.map(v=>({...v,...srs(),...(savedMap.get(v.word.toLowerCase())||{})}));
+ saved.forEach(v=>{if(!vocab.some(x=>x.word.toLowerCase()===v.word.toLowerCase()))vocab.push(v)});
+ todayDone=+(localStorage.getItem("vocabflip_plus_done_"+today())||0);
+ save();
+ renderCategories();
+ renderModalCategories();
+ showNextCard();
+}
+function save(){localStorage.setItem("vocabflip_plus_data",JSON.stringify(vocab));localStorage.setItem("vocabflip_plus_done_"+today(),todayDone)}
+function filtered(){
+ const level=document.getElementById("level").value;
+ return vocab.filter(v=>{
+  if(currentCategory!=="all"&&v.category!==currentCategory)return false;
+  if(level!=="all"&&v.level!==level)return false;
+  if(searchText&&!(`${v.word} ${v.meaning} ${v.thaiReading||""}`.toLowerCase().includes(searchText)))return false;
+  return true;
+ })
+}
+function due(){const n=now();return filtered().filter(v=>v.status==="new"||v.nextReview<=n)}
+function pick(){
+ const d=due();if(!d.length)return null;
+ const learning=d.filter(v=>v.status==="learning"), fresh=d.filter(v=>v.status==="new"), review=d.filter(v=>v.status==="review");
+ const pool=learning.length?learning:fresh.length?fresh:review;
+ return pool[Math.floor(Math.random()*pool.length)]
+}
+function renderCategories(){
+ const cats=["all",...Object.keys(CATEGORY_META)];
+ document.getElementById("cats").innerHTML=cats.map(c=>{
+   const m=CATEGORY_META[c]; const color=c==="all"?"#ffd166":m.color; const label=c==="all"?"✨ ทั้งหมด":`${m.icon} ${m.label}`;
+   return `<button class="cat ${c===currentCategory?"active":""}" style="background:${color}" onclick="setCategory('${c}')">${label}</button>`;
+ }).join("")
+}
+function renderModalCategories(){
+ document.getElementById("mCategory").innerHTML=Object.keys(CATEGORY_META).map(c=>`<option>${c}</option>`).join("")
+}
+function setCategory(c){currentCategory=c;renderCategories();showNextCard()}
+function onSearch(){searchText=document.getElementById("search").value.trim().toLowerCase();showNextCard()}
+function showNextCard(){
+ document.getElementById("card").classList.remove("flipped");document.getElementById("rating").classList.remove("visible");
+ current=pick(); const area=document.getElementById("cardArea"), empty=document.getElementById("empty");
+ if(!current){area.style.display="none";empty.style.display="block";updateStats();return}
+ area.style.display="block";empty.style.display="none";
+ const meta=CATEGORY_META[current.category]||{label:current.category,color:"#67728f",icon:"📘"};
+ ["fCat","bCat"].forEach(id=>{const el=document.getElementById(id);el.textContent=`${meta.icon} ${meta.label}`;el.style.background=meta.color});
+ document.getElementById("memory").textContent=current.image||meta.icon||"🧠";
+ document.getElementById("word").textContent=current.word;
+ document.getElementById("thaiReading").textContent=current.thaiReading||"";
+ document.getElementById("phonetic").textContent=current.phonetic||"";
+ document.getElementById("meaning").textContent=current.meaning||"";
+ document.getElementById("example").textContent=current.example||"";
+ const ints=intervals(current);["i0","i1","i2","i3"].forEach((id,i)=>document.getElementById(id).textContent=formatInterval([0,ints.hard,ints.good,ints.easy][i]));
+ updateStats()
+}
+function flipCard(){document.getElementById("card").classList.toggle("flipped");if(document.getElementById("card").classList.contains("flipped"))document.getElementById("rating").classList.add("visible")}
+function intervals(c){let good=c.repetitions===0?1:c.repetitions===1?3:Math.ceil(c.interval*c.ease);return{hard:Math.max(1,Math.ceil(c.interval*1.2)),good,easy:Math.max(2,Math.ceil(good*1.5))}}
+function formatInterval(d){if(d===0)return"1 นาที";if(d===1)return"1 วัน";if(d<30)return d+" วัน";if(d<365)return Math.round(d/30)+" เดือน";return Math.round(d/365)+" ปี"}
+function rateCard(q,e){e.stopPropagation();if(!current)return;const i=vocab.findIndex(v=>v.word===current.word&&v.category===current.category),iv=intervals(current);
+ if(q===0)Object.assign(vocab[i],{interval:0,repetitions:0,ease:Math.max(1.3,vocab[i].ease-.2),nextReview:now()+60000,status:"learning"});
+ if(q===1)Object.assign(vocab[i],{interval:iv.hard,ease:Math.max(1.3,vocab[i].ease-.15),nextReview:now()+iv.hard*86400000,repetitions:vocab[i].repetitions+1,status:"review"});
+ if(q===2)Object.assign(vocab[i],{interval:iv.good,nextReview:now()+iv.good*86400000,repetitions:vocab[i].repetitions+1,status:"review"});
+ if(q===3)Object.assign(vocab[i],{interval:iv.easy,ease:Math.min(3,vocab[i].ease+.15),nextReview:now()+iv.easy*86400000,repetitions:vocab[i].repetitions+1,status:"review"});
+ todayDone++;save();showNextCard()
+}
+function updateStats(){
+ const f=filtered(),n=now();document.getElementById("sNew").textContent=f.filter(v=>v.status==="new").length;
+ document.getElementById("sLearning").textContent=f.filter(v=>v.status==="learning"&&v.nextReview<=n).length;
+ document.getElementById("sReview").textContent=f.filter(v=>v.status==="review"&&v.nextReview<=n).length;
+ document.getElementById("sDone").textContent=todayDone;document.getElementById("totalWords").textContent=vocab.length.toLocaleString();
+ document.getElementById("activeCat").textContent=currentCategory==="all"?"ทั้งหมด":CATEGORY_META[currentCategory]?.label||currentCategory;
+ const mastered=f.length?f.filter(v=>v.status==="review"&&v.nextReview>n).length/f.length*100:0;document.getElementById("progress").style.width=mastered+"%"
+}
+function speakWord(e){e.stopPropagation();if(!current||!("speechSynthesis"in window))return; speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(current.word);u.lang="en-US";u.rate=.82;speechSynthesis.speak(u)}
+function shuffleCard(e){e.stopPropagation();current=null;showNextCard()}
+function openModal(e){e.stopPropagation();document.getElementById("modalBg").classList.add("open")}
+function closeModal(){document.getElementById("modalBg").classList.remove("open")}
+function saveWord(){
+ const word=document.getElementById("mWord").value.trim(), meaning=document.getElementById("mMeaning").value.trim();
+ if(!word||!meaning){alert("กรุณากรอกคำศัพท์และความหมาย");return}
+ vocab.push({word,thaiReading:document.getElementById("mThai").value.trim(),phonetic:document.getElementById("mPhonetic").value.trim(),meaning,example:document.getElementById("mExample").value.trim(),image:document.getElementById("mImage").value.trim()||"🧠",category:document.getElementById("mCategory").value,level:document.getElementById("mLevel").value,...srs()});
+ save();closeModal();showNextCard()
+}
+function resetProgress(){if(!confirm("รีเซ็ตความก้าวหน้าทั้งหมด?"))return;vocab=vocab.map(v=>({...v,...srs()}));todayDone=0;save();showNextCard()}
+document.addEventListener("keydown",e=>{if(document.getElementById("modalBg").classList.contains("open"))return;if(e.code==="Space"){e.preventDefault();flipCard()}if("1234".includes(e.key))rateCard(+e.key-1,{stopPropagation(){}})});
+loadData();
+</script>
+</body>
+</html>
