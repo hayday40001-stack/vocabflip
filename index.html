@@ -119,7 +119,7 @@ linear-gradient(180deg,#0d1224,#111832 65%,#0b1020);color:var(--text);min-height
               <div class="word" id="word">Loading...</div>
               <div class="thai-reading" id="thaiReading"></div>
               <div class="phonetic" id="phonetic"></div>
-              <div class="hint">แตะเพื่อพลิก • Space</div>
+              <div class="hint">แตะเพื่อพลิก • Space • กด 5 = ข้ามว่าเป็นคำง่าย</div>
             </div>
             <div class="face back">
               <div class="ribbon" id="bCat"></div>
@@ -131,6 +131,7 @@ linear-gradient(180deg,#0d1224,#111832 65%,#0b1020);color:var(--text);min-height
         </div>
         <div class="toolbar">
           <button class="btn" onclick="speakWord(event)">🔊 ฟังเสียง</button>
+          <button class="btn" onclick="skipEasy(event)">⏭ ง่าย ข้ามคำนี้</button>
           <button class="btn" onclick="shuffleCard(event)">🎲 สุ่มคำ</button>
           <button class="btn" onclick="openLibrary(event)">📚 คลังคำศัพท์</button>
           <button class="btn primary" onclick="openModal(event)">＋ เพิ่มคำศัพท์</button>
@@ -307,6 +308,27 @@ function rateCard(q,e){e.stopPropagation();if(!current)return;const i=vocab.find
  if(q===3)Object.assign(vocab[i],{interval:iv.easy,ease:Math.min(3,vocab[i].ease+.15),nextReview:now()+iv.easy*86400000,repetitions:vocab[i].repetitions+1,status:"review"});
  todayDone++;save();showNextCard()
 }
+
+function skipEasy(e){
+ if(e&&e.stopPropagation)e.stopPropagation();
+ if(!current)return;
+
+ const i=vocab.findIndex(v=>v.word===current.word&&v.category===current.category);
+ if(i<0)return;
+
+ Object.assign(vocab[i],{
+   interval:30,
+   ease:Math.max(2.7,vocab[i].ease||2.5),
+   repetitions:Math.max(3,vocab[i].repetitions||0),
+   nextReview:now()+30*86400000,
+   status:"review"
+ });
+
+ todayDone++;
+ save();
+ showNextCard();
+}
+
 function updateStats(){
  const f=filtered(),n=now();document.getElementById("sNew").textContent=f.filter(v=>v.status==="new").length;
  document.getElementById("sLearning").textContent=f.filter(v=>v.status==="learning"&&v.nextReview<=n).length;
@@ -408,7 +430,7 @@ function studyFromLibrary(w,c){
 }
 
 function resetProgress(){if(!confirm("รีเซ็ตความก้าวหน้าทั้งหมด?"))return;vocab=vocab.map(v=>({...v,...srs()}));todayDone=0;save();showNextCard()}
-document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeModal();closeLibrary();return} if(document.getElementById("modalBg").classList.contains("open")||document.getElementById("libraryBg").classList.contains("open"))return;if(e.code==="Space"){e.preventDefault();flipCard()}if("1234".includes(e.key))rateCard(+e.key-1,{stopPropagation(){}})});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeModal();closeLibrary();return} if(document.getElementById("modalBg").classList.contains("open")||document.getElementById("libraryBg").classList.contains("open"))return;if(e.code==="Space"){e.preventDefault();flipCard()}if("1234".includes(e.key))rateCard(+e.key-1,{stopPropagation(){}});if(e.key==="5")skipEasy({stopPropagation(){}})});
 loadData();
 </script>
 </body>
